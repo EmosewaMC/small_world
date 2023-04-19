@@ -4,3 +4,4 @@ small-world/
 .vscode/settings.json
 .vscode/*
 
+.gitignore.swp
