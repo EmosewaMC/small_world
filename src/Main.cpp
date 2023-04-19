@@ -1,6 +1,8 @@
 
 #include <iostream>
 #include <signal.h>
+#include <future>
+#include <thread>
 
 #include "Player.h"
 #include "Room.h"
@@ -41,7 +43,13 @@ int main() {
 	Logger::Instance().Flush();
 
 	signal(SIGINT, [](int) { Logger::Instance().Shutdown(); exit(EXIT_SUCCESS); });
-
+	auto f = std::async(std::launch::async, [=]() {
+		Logger::Instance().Log("Starting the input thread");
+        std::string s = "";
+		std::cin >> s;
+		std::cout << s << std::endl;
+		return s;
+    });
 	Logger::Instance().Log("Creating the player");
 	Player player("Player1", "Player1", "A non-descript player.  They are grey-ish"); 
 	Index<Room> rooms;
@@ -71,6 +79,7 @@ int main() {
 	std::string input_line;
 	
 	do {
+		continue;
 		std::getline(std::cin, input_line);
 	 	input_line = trim(input_line);		
 

@@ -1,6 +1,7 @@
 #ifndef __LOGGER__H__
 #define __LOGGER__H__
 
+#include <mutex>
 #include <stdio.h>
 
 #include "Singleton.h"
@@ -18,6 +19,7 @@ public:
     void Flush();
 private:
     FILE* m_File;
+    std::mutex m_Mutex;
 };
 
 #endif  //!__LOGGER__H__
