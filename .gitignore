@@ -1,7 +1,6 @@
 build/
 small_world
 small-world/
-.vscode/settings.json
 .vscode/*
 
 .gitignore.swp
