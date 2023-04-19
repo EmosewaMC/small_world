@@ -34,6 +34,15 @@ SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room, const std::s
 		return proposed_room;
 }
 
+#define PlayerInputAsync std::async(std::launch::async, [&]() { \
+	Logger::Instance().Log("Awaiting player input"); \
+	std::string s = ""; \
+	std::cin >> s; \
+	std::cout << s << std::endl; \
+	Logger::Instance().Log("Player input: %s", s.c_str()); \
+	return s; \
+});
+
 int main() {
 	auto fmt = "logs/log_%i_.txt";
 	char buf[100];
@@ -42,14 +51,10 @@ int main() {
 	Logger::Instance().Log("Starting the game at time %i", time(NULL));
 	Logger::Instance().Flush();
 
+	auto playerInput = PlayerInputAsync;
+	
 	signal(SIGINT, [](int) { Logger::Instance().Shutdown(); exit(EXIT_SUCCESS); });
-	auto f = std::async(std::launch::async, [=]() {
-		Logger::Instance().Log("Starting the input thread");
-        std::string s = "";
-		std::cin >> s;
-		std::cout << s << std::endl;
-		return s;
-    });
+	atexit([]() {Logger::Instance().Shutdown(); });
 	Logger::Instance().Log("Creating the player");
 	Player player("Player1", "Player1", "A non-descript player.  They are grey-ish"); 
 	Index<Room> rooms;
@@ -79,9 +84,8 @@ int main() {
 	std::string input_line;
 	
 	do {
-		continue;
-		std::getline(std::cin, input_line);
-	 	input_line = trim(input_line);		
+		std::string holder = playerInput.get();
+		input_line = holder;
 
 		if ((input_line == "q") || (input_line == "Q") || (input_line == "quit")) {
 			std::cout << "bye" << std::endl;
@@ -89,6 +93,7 @@ int main() {
 			player.clear();
 			return EXIT_SUCCESS;
 		}
+		playerInput = PlayerInputAsync;
 
 		if (input_line == "look") {
 			player.look();
