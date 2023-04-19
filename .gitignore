@@ -3,3 +3,5 @@ small_world
 
 
 small-world/
+.vscode/settings.json
+*.json
