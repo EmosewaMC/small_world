@@ -12,8 +12,7 @@
 #include "Player.h"
 #include "Room.h"
 
-SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room,
-	const std::string& direction) {
+SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room, const std::string& direction) {
 	const std::string& next_room_id = room->get_next_room_id(direction);
 	if (next_room_id.empty()) {
 		Log("There is no where to go in the %s direction", direction.c_str());
@@ -21,7 +20,7 @@ SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room,
 	}
 
 	SharedRoomPtr proposed_room = index->get_object(next_room_id);
-	if (proposed_room) {
+	if (!proposed_room) {
 		Log("There was a room proposed for %s but it does not exist in the index",
 			direction.c_str());
 		return nullptr;
@@ -116,7 +115,7 @@ int main() {
 		} else if (input_line.find("go ", 0) == 0) {
 			std::vector<std::string> sp = StringUtils::split(input_line, " ");
 
-			if (sp.size() != 1) {
+			if (sp.size() <= 1) {
 				Log("I need a valid direction to go in.");
 			} else {
 				const std::string direction = sp[1];
@@ -130,9 +129,8 @@ int main() {
 					continue;
 				}
 
-				SharedRoomPtr proposed_room =
-					get_next_room(&rooms, current_room, direction);
-				if (proposed_room == nullptr) {
+				SharedRoomPtr proposed_room = get_next_room(&rooms, current_room, direction);
+				if (!proposed_room) {
 					Log("There isn't anything in that direction");
 					continue;
 				}

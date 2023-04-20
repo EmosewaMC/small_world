@@ -12,7 +12,7 @@
 SharedRoomPtr Loader::load_room(const std::string& filename) const {
 
 	// load a room from the JSON contained in filename
-	// if there are errors, note these to std::cerr, and return nullptr
+	// if there are errors, note these to LogError, and return nullptr
 	// otherwise, return a shared_ptr to the room
 
 	picojson::value v;
@@ -59,10 +59,12 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 	// now load the links to other rooms, if any
 		
 	if (!has_object_field(obj, "Links")) {
+		LogWarning("filename : %s does not contain a Links property and may be a dead end!", filename.c_str());
 		return room;  // it's fine to be a "standalone" room with no links
 	}
 
 	if (!load_links(filename, obj["Links"].get<picojson::object>(), room)) {
+		LogError("Error loading links from filename : %s", filename.c_str());
 		return nullptr;   // if there are links, they have to be right!
 	}
 
@@ -71,41 +73,31 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 }
 
 bool Loader::has_string_field(picojson::value::object& obj, const std::string& fieldname) const {
-
 	// illustates data verification - does this object name the named field, and is it a string?
-
 	if (obj.find(fieldname) == obj.end()) return false;
 	if (!obj[fieldname].is<std::string>()) return false;
 
 	return true;
-
 }
 
 bool Loader::has_object_field(picojson::value::object& obj, const std::string& fieldname) const {
-
 	if (obj.find(fieldname) == obj.end()) return false;
 	if (!obj[fieldname].is<picojson::object>()) return false;
 
 	return true;
-
 }
 
 bool Loader::load_links(const std::string& filename, const picojson::value::object& obj, SharedRoomPtr room) const {
-
-
 	// load links to other rooms.  An example of using an iterator to iterate a JSON OBJECT
-
 	for (picojson::value::object::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		const std::string& direction = i->first;
 		picojson::value linked_room = i->second;
 		if (!linked_room.is<std::string>()) {
-			std::cerr << "Link in filename : " << filename << " named " << direction << " is not a string" << std::endl;
+			LogError("Link in filename : %s named %s is not a string", filename.c_str(), direction.c_str());
 			return false;
 		}
-
 		room->add_link(direction, linked_room.get<std::string>());
 	}
-
 	return true;
 }	
 
