@@ -24,7 +24,7 @@ bool DirectoryLoader::load_directory_of_rooms(const std::string& dirname, Index<
 	for (const auto& entry : std::filesystem::directory_iterator(dirname)) {
 		auto filePath = entry.path();
 		auto filePathCstr = filePath.c_str();
-		if (StringUtils::ends_with(filePathCstr, ".json")) {
+		if (StringUtils::EndsWith(filePathCstr, ".json")) {
 			Log("Loading: %s", filePathCstr);
 			SharedRoomPtr room = loader.load_room(filePathCstr);
 			if (!room) {

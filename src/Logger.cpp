@@ -38,25 +38,25 @@ void Logger::Shutdown() {
     }
 }
 
-void Logger::_LogError(const char* message, ...) {
+void Logger::_LogError(const char* fileName, const char* message, ...) {
     StartVaList(message);
 	cerr << "\033[1;31mERROR: \033[0m";
     fputs("ERROR: ", m_File);
-    _Log(message, true, args);
+    _Log(fileName, message, true, args);
     EndVaList;
 }
 
-void Logger::_LogWarning(const char* message, ...) {
+void Logger::_LogWarning(const char* fileName, const char* message, ...) {
     StartVaList(message);
     cout << "\033[1;33mWARNING: \033[0m";
     fputs("WARNING: ", m_File);
-    _Log(message, false, args);
+    _Log(fileName, message, false, args);
     EndVaList;
 }
 
-void Logger::_Log(const char* message, ...) {
+void Logger::_Log(const char* fileName, const char* message, ...) {
     StartVaList(message);
-    _Log(message, false, args);
+    _Log(fileName, message, false, args);
     va_end(args);
 }
 
@@ -66,12 +66,15 @@ void Logger::Flush() {
     }
 }
 
-void Logger::_Log(const char* message, bool logError, va_list args) {
+void Logger::_Log(const char* fileName, const char* message, bool logError, va_list args) {
     char buffer[2048];
     vsnprintf(buffer, 2048, message, args);
     m_Mutex.lock();
-    if (!logError) cout << buffer << endl;
-	else cerr << buffer << endl;
+    if (!logError) cout << '[' << fileName << "] " << buffer << endl;
+	else cerr<< '[' << fileName << "] " << buffer << endl;
+	fputs("[", m_File);
+	fputs(fileName, m_File);
+	fputs("] ", m_File);
     fputs(buffer, m_File);
     fputs("\n", m_File);
     m_Mutex.unlock();
@@ -81,4 +84,16 @@ void Logger::SetShutdown() {
     m_Mutex.lock();
     m_Shutdown = true;
     m_Mutex.unlock();
+}
+
+void Logger::_Output(const char* message, ...) {
+	StartVaList(message);
+    char buffer[2048];
+    vsnprintf(buffer, 2048, message, args);
+    m_Mutex.lock();
+	cout << buffer << endl;
+    fputs(buffer, m_File);
+    fputs("\n", m_File);
+    m_Mutex.unlock();
+	EndVaList;
 }

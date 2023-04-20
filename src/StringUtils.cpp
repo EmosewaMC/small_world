@@ -3,13 +3,13 @@
 #include "Logger.h"
 
 // Returns true if the string ends with the given substring
-bool StringUtils::ends_with(std::string const& str, std::string const& en) {
+bool StringUtils::EndsWith(std::string const& str, std::string const& en) {
 	if (en.size() > str.size()) return false;
 	return std::equal(en.rbegin(), en.rend(), str.rbegin());
 }
 
 // Trim space from the beginning of a string
-void StringUtils::ltrim(std::string& s) {
+void StringUtils::LeftTrim(std::string& s) {
 	int32_t firstNonWhitespace = -1;
 	for (int32_t i = 0; i < s.size(); i++) {
 		if (!std::isspace(s.at(i))) break;
@@ -19,7 +19,7 @@ void StringUtils::ltrim(std::string& s) {
 }
 
 // Trim space from the end of a string
-void StringUtils::rtrim(std::string& s) {
+void StringUtils::RightTrim(std::string& s) {
 	int32_t firstNonWhitespace = -1;
 	for (int32_t i = s.length() - 1; i > 0; i--) {
 		if (!std::isspace(s.at(i))) break;
@@ -29,23 +29,25 @@ void StringUtils::rtrim(std::string& s) {
 }
 
 // trim from both ends
-std::string StringUtils::trim(std::string s) {
-	rtrim(s);
-	ltrim(s);
+std::string StringUtils::Trim(std::string s) {
+	RightTrim(s);
+	LeftTrim(s);
 	return s;
 }
 
-std::vector<std::string> StringUtils::split(std::string s, std::string delimiter) {
-	int32_t pos_start = 0, pos_end, delim_len = delimiter.length();
+std::vector<std::string> StringUtils::Split(std::string s, std::string delimiter) {
 	std::string token;
-	std::vector<std::string> res;
+	std::vector<std::string> result;
 
-	while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
-		token = s.substr(pos_start, pos_end - pos_start);
-		pos_start = pos_end + delim_len;
-		res.push_back(token);
+	for (auto c : s) {
+		if (delimiter.find_first_of(c) != std::string::npos) {
+			result.push_back(token);
+			token.clear();
+		} else {
+			token += c;
+		}
 	}
 
-	res.push_back(s.substr(pos_start));
-	return res;
+	result.push_back(token);
+	return result;
 }

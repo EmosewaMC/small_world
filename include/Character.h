@@ -10,8 +10,8 @@ public:
 
 	virtual bool is_character() const { return true; }
 
-	virtual void set_current_room(SharedRoomPtr room);
-	virtual SharedRoomPtr get_current_room();
+	virtual void set_current_room(SharedRoomPtr room) { this->current_room = room; }
+	virtual SharedRoomPtr get_current_room() const { return current_room; }
 
 	virtual void look();
 	virtual void clear() { current_room = nullptr; }

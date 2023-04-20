@@ -1,6 +1,7 @@
 
 #include <signal.h>
 
+#include <chrono>
 #include <future>
 #include <iostream>
 #include <thread>
@@ -11,6 +12,9 @@
 #include "Logger.h"
 #include "Player.h"
 #include "Room.h"
+
+#define FPS 15
+#define MILLISECONDS_PER_FRAME 1000 / FPS
 
 SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room, const std::string& direction) {
 	const std::string& next_room_id = room->get_next_room_id(direction);
@@ -39,6 +43,7 @@ SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room, const std::s
   });
 
 void Shutdown(bool isExit = false) {
+	Log("Shutting down the game");
 	Logger::Instance().Shutdown();
 	if (isExit) {
 		exit(EXIT_SUCCESS);
@@ -53,7 +58,7 @@ int main() {
 	Log("Starting the game at time %i", time(NULL));
 	Logger::Instance().Flush();
 
-	signal(SIGINT, [](int) { Shutdown(true); });
+	signal(SIGINT, [](int termSignal) { Log("Received signal %i", termSignal); Shutdown(true); });
 	atexit([]() { Logger::Instance().Shutdown(); });
 	Log("Creating the player");
 	Player player("Player1", "Player1",
@@ -88,59 +93,61 @@ int main() {
 
 	// Begin player input
 	auto playerInput = PlayerInputAsync;
-	do {
-		std::string holder = playerInput.get();
-		input_line = StringUtils::trim(holder);
+
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	while (true) {
+		auto playerInputStatus = playerInput.wait_until(currentTime);
+		bool playerInputReady = playerInputStatus == std::future_status::ready;
+		if (playerInputReady) {
+			input_line = playerInput.get();
+			input_line = StringUtils::Trim(input_line);
+		}
 		// Lowercase for consistency
 		std::transform(input_line.begin(), input_line.end(), input_line.begin(),
 			::tolower);
 
-		if ((input_line == "q") || (input_line == "quit")) {
-			Log("bye");
+		if (input_line == "q" || input_line == "quit" || input_line == "exit") {
+			Message("bye");
 			rooms.clear();
 			player.clear();
 			Shutdown();
 			return EXIT_SUCCESS;
 		}
 
-		// FIXME: This should be done right after we get the input from the future
-		// above.
-		playerInput = PlayerInputAsync;
-
-		Log("Trimmed player input: (%s) size (%i)", input_line.c_str(),
-			input_line.size());
-
-		if (input_line == "look") {
-			player.look();
-		} else if (input_line.find("go ", 0) == 0) {
-			std::vector<std::string> sp = StringUtils::split(input_line, " ");
-
-			if (sp.size() <= 1) {
-				Log("I need a valid direction to go in.");
-			} else {
-				const std::string direction = sp[1];
-
-				Log("Go %s", direction.c_str());
-
-				SharedRoomPtr current_room = player.get_current_room();
-
-				if (current_room == nullptr) {
-					Log("You are standing nowhere, so can't go anywhere");
-					continue;
-				}
-
-				SharedRoomPtr proposed_room = get_next_room(&rooms, current_room, direction);
-				if (!proposed_room) {
-					Log("There isn't anything in that direction");
-					continue;
-				}
-
-				player.set_current_room(proposed_room);
-				Log("\n");
+		if (playerInputReady) {
+			Log("Trimmed player input: (%s) size (%i)", input_line.c_str(), input_line.size());
+			if (input_line == "look") {
 				player.look();
+			} else if (input_line.find("go ", 0) == 0) {
+				std::vector<std::string> sp = StringUtils::Split(input_line, " \t");
+
+				if (sp.size() <= 1) {
+					Log("I need a valid direction to go in.");
+				} else {
+					const std::string& direction = sp.at(1);
+
+					SharedRoomPtr current_room = player.get_current_room();
+
+					if (!current_room) {
+						LogError("You are standing nowhere, so can't go anywhere.  Shutting down game.");
+						exit(EXIT_FAILURE);
+					}
+
+					SharedRoomPtr proposed_room = get_next_room(&rooms, current_room, direction);
+					if (proposed_room) {
+						player.set_current_room(proposed_room);
+						Log("\n");
+						player.look();
+					} else {
+						Log("There isn't anything in that direction");
+					}
+				}
+			} else {
+				Log("The command %s is not recognized", input_line.c_str());
 			}
-			continue;
+			playerInput = PlayerInputAsync;
 		}
-		Log("The command %s is not recognized", input_line.c_str());
-	} while (true);
+		currentTime += std::chrono::milliseconds(MILLISECONDS_PER_FRAME);
+		std::this_thread::sleep_until(currentTime);
+	}
 }
