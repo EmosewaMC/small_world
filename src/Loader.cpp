@@ -9,7 +9,7 @@
 // In most commerical systems, this would be done using an automatic deserializer
 using namespace picojson;
 
-std::shared_ptr<Room> Loader::load_room(const std::string& filename) const {
+SharedRoomPtr Loader::load_room(const std::string& filename) const {
 
 	// load a room from the JSON contained in filename
 	// if there are errors, note these to std::cerr, and return nullptr
@@ -54,7 +54,7 @@ std::shared_ptr<Room> Loader::load_room(const std::string& filename) const {
 	picojson::value vName = obj["Name"];
 	picojson::value vDesc = obj["Description"];
 
-	std::shared_ptr<Room> room = std::make_shared<Room>(vId.get<std::string>(), vName.get<std::string>(), vDesc.get<std::string>());	
+	SharedRoomPtr room = std::make_shared<Room>(vId.get<std::string>(), vName.get<std::string>(), vDesc.get<std::string>());	
 
 	// now load the links to other rooms, if any
 		
@@ -90,7 +90,7 @@ bool Loader::has_object_field(picojson::value::object& obj, const std::string& f
 
 }
 
-bool Loader::load_links(const std::string& filename, const picojson::value::object& obj, std::shared_ptr<Room> room) const {
+bool Loader::load_links(const std::string& filename, const picojson::value::object& obj, SharedRoomPtr room) const {
 
 
 	// load links to other rooms.  An example of using an iterator to iterate a JSON OBJECT

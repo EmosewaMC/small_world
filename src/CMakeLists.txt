@@ -3,6 +3,7 @@ SET(SOURCE_FILES
     "DirectoryLoader.cpp"
     "Loader.cpp"
     "Logger.cpp"
+	"Player.cpp"
     "Room.cpp"
 )
 

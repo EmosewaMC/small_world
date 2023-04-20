@@ -17,14 +17,14 @@ class Loader {
         // only a loader for rooms is implemented at present
 		
 	public:
-		std::shared_ptr<Room> load_room(const std::string & filename) const;
+		SharedRoomPtr load_room(const std::string & filename) const;
 
 	protected:
 
 		bool has_string_field(picojson::value::object & obj, const std::string & fieldname) const;
 		bool has_object_field(picojson::value::object & obj, const std::string & fieldname) const;
 
-		bool load_links(const std::string & filename, const picojson::value::object & obj, std::shared_ptr<Room> room) const;
+		bool load_links(const std::string & filename, const picojson::value::object & obj, SharedRoomPtr room) const;
 
 
 };

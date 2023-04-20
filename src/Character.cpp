@@ -1,28 +1,22 @@
 #include "Character.h"
 
-#include <iostream>
-
 #include "Room.h"
+#include "Logger.h"
 
-using namespace std;
-
-void Character::set_current_room(std::shared_ptr<Room> room) {
+void Character::set_current_room(SharedRoomPtr room) {
 	current_room = room;
 }
 
-std::shared_ptr<Room> Character::get_current_room() {
+SharedRoomPtr Character::get_current_room() {
 	return current_room;
 }
 
 void Character::look() {
-
-	if (current_room == nullptr) {
-		std::cout << "You are nowhere" << endl;
+	if (!current_room) {
+		Log("You are nowhere");
 		return;
 	}
-
-	cout << current_room->get_description() << endl << endl;
-
+	Log("%s\n", current_room->get_description().c_str());
 }
 
 

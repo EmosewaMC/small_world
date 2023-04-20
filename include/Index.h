@@ -6,7 +6,8 @@
 // look up objects by their ID.  This is a templated class, we specify the type - in this 
 // case, a Room, Player, or Item
 
-template <typename T> class Index {
+template <typename T>
+class Index {
 
 	std::map<std::string, std::shared_ptr<T>> index;
 

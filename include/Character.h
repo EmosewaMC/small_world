@@ -1,24 +1,23 @@
-#pragma once
+#ifndef __CHARACTER__H__
+#define __CHARACTER__H__
 
 #include "GameObject.h"
 
-class Room;
+#include "Room.h"
 
 class Character : public GameObject {
+public:
+	Character(const std::string& id_, const std::string& name_, const std::string& desc_) : GameObject(id_, name_, desc_) {}
 
-	protected:
+	virtual bool is_character() const { return true; }
 
-		std::shared_ptr<Room> current_room = nullptr;
+	virtual void set_current_room(SharedRoomPtr room);
+	virtual SharedRoomPtr get_current_room();
 
-	public:
-		Character(const std::string & id_, const std::string name_, const std::string & desc_) : GameObject(id_, name_, desc_) {}
-
-		virtual bool is_character() const { return true; }
-
-		virtual void set_current_room(std::shared_ptr<Room> room);
-		virtual std::shared_ptr<Room> get_current_room();
-
-		virtual void look();
-		virtual void clear() { current_room = nullptr; }
-
+	virtual void look();
+	virtual void clear() { current_room = nullptr; }
+protected:
+	SharedRoomPtr current_room = nullptr;
 };
+
+#endif  //!__CHARACTER__H__

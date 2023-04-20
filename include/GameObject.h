@@ -15,30 +15,30 @@
 // base definition
 
 class GameObject {
+protected:
+	std::string id;
+	std::string name;
+	std::string description;
 
-	protected:
+public:
+	GameObject(const std::string& id_, const std::string& name_, const std::string& description_) {
+		id = id_;
+		name = name_;
+		description = description_;
+	}
 
-		std::string id;
-		std::string name;
-		std::string description;
+	const std::string& get_id() const { return id; }
+	const std::string& get_name() const { return name; }
+	const std::string& get_description() const { return description; }
 
-	public:
+	virtual bool is_player() const { return false; }
+	virtual bool is_character() const { return false; }
+	virtual bool is_item() const { return false; }
+	virtual bool is_room() const { return false; }
 
-		GameObject(const std::string & id_, const std::string & name_, const std::string & description_) {
-			id = id_;
-			name = name_;
-			description = description_;
-		}
-
-		const std::string & get_id() const { return id;}
-		const std::string & get_name() const { return name; }
-		const std::string & get_description() const { return description; }
-
-		virtual bool is_player() const { return false; }
-		virtual bool is_character() const { return false; }
-		virtual bool is_item() const { return false; }
-		virtual bool is_room() const { return false; }
-
-		virtual bool can_be_taken() const { return false; }
+	virtual bool can_be_taken() const { return false; }
 
 };
+
+typedef std::shared_ptr<GameObject> SharedGameObjectPtr;
+

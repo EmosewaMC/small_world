@@ -15,38 +15,34 @@
 
 #include "Room.h"
 #include "Loader.h"
+#include "Logger.h"
 
 bool DirectoryLoader::load_directory_of_rooms(const std::string& dirname, Index<Room>* roomIndex) const {
 
 	Loader loader;
- 
-	std::cout << "About to directory : " << dirname << std::endl;
+	Log("Abour to load directory : %s", dirname.c_str());
 
 	std::vector<std::string> fileNames = list_dir(dirname);
-	
+
 	for (const auto& entry : fileNames) {
 
 		if (entry == "..") continue;
 		if (entry == ".") continue;
 
-		if (!ends_with(entry, ".json")) continue;	
-		
-		std::string path = dirname + entry;
-		std::cout << "loading: " << path << std::endl;
+		if (!ends_with(entry, ".json")) continue;
 
-		std::shared_ptr<Room> room = loader.load_room(path);
-		
+		std::string path = dirname + entry;
+		Log("Loading: %s", path.c_str());
+
+		SharedRoomPtr room = loader.load_room(path);
+
 		if (room == nullptr) {
-			std::cerr << "Cannot load room : " << entry << std::endl;
+			LogError("Cannot load room : %s", entry.c_str());
 			return false;
 		}
-
-		std::cout << "Successfully loaded room : " << entry << std::endl;
-
+		Log("Successfully loaded room : %s", entry.c_str());
 		roomIndex->add_object(room);
 	}
-
 	return true;
-
 }
 

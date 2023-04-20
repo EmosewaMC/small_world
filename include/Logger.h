@@ -9,6 +9,10 @@
 
 #include "Singleton.h"
 
+#define Log(message, ...) Logger::Instance()._Log(message, ##__VA_ARGS__)
+#define LogWarning(message, ...) Logger::Instance()._LogWarning(message, ##__VA_ARGS__)
+#define LogError(message, ...) Logger::Instance()._LogError(message, ##__VA_ARGS__)
+
 class Logger : public Singleton<Logger> {
 public:
     Logger() = default;
@@ -16,13 +20,14 @@ public:
     void Shutdown();
     void Initialize(const char* filename);
 
-    void Log(const char* message, ...);
-    void LogWarning(const char* message, ...);
-    void LogError(const char* message, ...);
+    void _Log(const char* message, ...);
+    void _LogWarning(const char* message, ...);
+    void _LogError(const char* message, ...);
     void Flush();
 private:
-    void Log(const char* message, va_list args);
+    void _Log(const char* message, va_list args);
     void LoggingThread();
+    void SetShutdown();
     FILE* m_File;
     std::mutex m_Mutex;
     std::thread m_Thread;

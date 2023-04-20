@@ -1,75 +1,80 @@
 
-#include <iostream>
 #include <signal.h>
+
 #include <future>
+#include <iostream>
 #include <thread>
 
+#include "DirectoryLoader.h"
+#include "Index.h"
+#include "Logger.h"
 #include "Player.h"
 #include "Room.h"
-#include "Index.h"
-#include "DirectoryLoader.h"
-#include "Logger.h"
-
-#include "trim.h"
 #include "split.h"
+#include "trim.h"
 
-typedef std::shared_ptr<Room> SharedRoomPtr; 
+SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room,
+	const std::string& direction) {
+	const std::string& next_room_id = room->get_next_room_id(direction);
+	if (next_room_id.empty()) {
+		Log("There is no where to go in the %s direction", direction.c_str());
+		return nullptr;
+	}
 
-SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room, const std::string& direction) {
+	SharedRoomPtr proposed_room = index->get_object(next_room_id);
+	if (proposed_room) {
+		Log("There was a room proposed for %s but it does not exist in the index",
+			direction.c_str());
+		return nullptr;
+	}
 
-		const std::string& next_room_id = room->get_next_room_id(direction);
-
-		if (next_room_id.empty()) {
-			Logger::Instance().Log("There is no where to go in the %s direction", direction.c_str());
-			return nullptr;
-		}
-
-		SharedRoomPtr proposed_room = index->get_object(next_room_id);
-
-		if (proposed_room) {
-			Logger::Instance().Log("There was a room proposed for %s but it does not exist in the index", direction.c_str());
-			return nullptr;
-		}
-
-		return proposed_room;
+	return proposed_room;
 }
 
-#define PlayerInputAsync std::async(std::launch::async, [&]() { \
-	Logger::Instance().Log("Awaiting player input"); \
-	std::string s = ""; \
-	std::cin >> s; \
-	std::cout << s << std::endl; \
-	Logger::Instance().Log("Player input: %s", s.c_str()); \
-	return s; \
-});
+#define PlayerInputAsync                      \
+  std::async(std::launch::async, [&]() {      \
+    Log("Awaiting player input");             \
+    std::string s = "";                       \
+    std::getline(std::cin, s);                \
+    Log("Exact Player input: %s", s.c_str()); \
+    return s;                                 \
+  });
+
+void Shutdown(bool isExit = false) {
+	Logger::Instance().Shutdown();
+	if (isExit) {
+		exit(EXIT_SUCCESS);
+	}
+}
 
 int main() {
-	auto fmt = "logs/log_%i_.txt";
+	auto fmt = "logs/log_%i.txt";
 	char buf[100];
 	snprintf(buf, 100, fmt, time(NULL));
 	Logger::Instance().Initialize(buf);
-	Logger::Instance().Log("Starting the game at time %i", time(NULL));
+	Log("Starting the game at time %i", time(NULL));
 	Logger::Instance().Flush();
 
 	auto playerInput = PlayerInputAsync;
-	
-	signal(SIGINT, [](int) { Logger::Instance().Shutdown(); exit(EXIT_SUCCESS); });
-	atexit([]() {Logger::Instance().Shutdown(); });
-	Logger::Instance().Log("Creating the player");
-	Player player("Player1", "Player1", "A non-descript player.  They are grey-ish"); 
+
+	signal(SIGINT, [](int) { Shutdown(true); });
+	atexit([]() { Logger::Instance().Shutdown(); });
+	Log("Creating the player");
+	Player player("Player1", "Player1",
+		"A non-descript player.  They are grey-ish");
 	Index<Room> rooms;
 
-	Logger::Instance().Log("Loading the rooms");
+	Log("Loading the rooms");
 	DirectoryLoader loader;
 	loader.load_directory_of_rooms("./data/rooms/", &rooms);
-	
+
 	std::string starting_room = "mrober10-room-a";
 	SharedRoomPtr room = rooms.get_object(starting_room);
 
-	Logger::Instance().Log("Getting the starting room");
+	Log("Getting the starting room");
 
 	if (!room) {
-		Logger::Instance().LogError("Cannot find the starting room : %s", starting_room.c_str());
+		LogError("Cannot find the starting room : %s", starting_room.c_str());
 		Logger::Instance().Shutdown();
 		rooms.clear();
 		player.clear();
@@ -77,64 +82,66 @@ int main() {
 	}
 
 	player.set_current_room(room);
-	Logger::Instance().Log("\n");
+	Log("\n");
 
 	player.look();
 
 	std::string input_line;
-	
+
 	do {
 		std::string holder = playerInput.get();
-		input_line = holder;
+		input_line = trim(holder);
+		// Lowercase for consistency
+		std::transform(input_line.begin(), input_line.end(), input_line.begin(),
+			::tolower);
 
-		if ((input_line == "q") || (input_line == "Q") || (input_line == "quit")) {
-			std::cout << "bye" << std::endl;
+		if ((input_line == "q") || (input_line == "quit")) {
+			Log("bye");
 			rooms.clear();
 			player.clear();
+			Shutdown();
 			return EXIT_SUCCESS;
 		}
+
+		// FIXME: This should be done right after we get the input from the future
+		// above.
 		playerInput = PlayerInputAsync;
+
+		Log("Trimmed player input: %s size %i", input_line.c_str(),
+			input_line.size());
 
 		if (input_line == "look") {
 			player.look();
+		} else if (input_line.find("go ", 0) == 0) {
+			std::vector<std::string> sp = split(input_line, " ");
+
+			if (sp.size() != 1) {
+				Log("I need a valid direction to go in.");
+			} else {
+				const std::string direction = sp[1];
+
+				Log("Go %s", direction.c_str());
+
+				SharedRoomPtr current_room = player.get_current_room();
+
+				if (current_room == nullptr) {
+					Log("You are standing nowhere, so can't go anywhere");
+					continue;
+				}
+
+				SharedRoomPtr proposed_room =
+					get_next_room(&rooms, current_room, direction);
+				if (proposed_room == nullptr) {
+					Log("There isn't anything in that direction");
+					continue;
+				}
+
+				player.set_current_room(proposed_room);
+				Log("\n");
+				player.look();
+			}
 			continue;
 		}
-
-		if (input_line.rfind("go", 0) == 0) {
-
-			std::vector<std::string> sp = split(input_line, " ");	
-
-			if (sp.size() == 1) {
-				std::cout << "Go where?" << std::endl;
-				continue;
-			}
-
-			const std::string direction = sp[1];
-
-			std::cout << " go " << direction << std::endl;
-
-			SharedRoomPtr current_room = player.get_current_room();
-
-			if (current_room == nullptr) {
-				std::cout << "You are standing nowhere, so can't go anywhere" << std::endl;
-				continue;
-			}
-
-			SharedRoomPtr proposed_room = get_next_room(&rooms, current_room, direction);
-			if (proposed_room == nullptr) {
-				std::cout << "There isn't anything in that direction" << std::endl;
-				continue;
-			}
-	
-			player.set_current_room(proposed_room);
-			std::cout << std::endl << std::endl;
-
-			player.look();
-
-			continue;
-
-		}
-		Logger::Instance().Log("I'm sorry, I don't understand that");
+		Log("The command %s is not recognized", input_line.c_str());
 	} while (true);
 }
-

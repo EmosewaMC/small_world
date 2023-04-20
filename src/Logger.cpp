@@ -20,7 +20,7 @@ void Logger::Initialize(const char* filename) {
 
 void Logger::LoggingThread() {
     while (!m_Shutdown) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         Flush();
     }
     Log("Logging thread is shutting down at time %i", time(NULL));
@@ -37,7 +37,7 @@ void Logger::Shutdown() {
     }
 }
 
-void Logger::LogError(const char* message, ...) {
+void Logger::_LogError(const char* message, ...) {
     StartVaList(message);
     cout << "\033[1;31mERROR: \033[0m";
     fputs("ERROR: ", m_File);
@@ -45,7 +45,7 @@ void Logger::LogError(const char* message, ...) {
     EndVaList;
 }
 
-void Logger::LogWarning(const char* message, ...) {
+void Logger::_LogWarning(const char* message, ...) {
     StartVaList(message);
     cout << "\033[1;33mWARNING: \033[0m";
     fputs("WARNING: ", m_File);
@@ -53,7 +53,7 @@ void Logger::LogWarning(const char* message, ...) {
     EndVaList;
 }
 
-void Logger::Log(const char* message, ...) {
+void Logger::_Log(const char* message, ...) {
     StartVaList(message);
     Log(message, args);
     va_end(args);
@@ -65,12 +65,18 @@ void Logger::Flush() {
     }
 }
 
-void Logger::Log(const char* message, va_list args) {
-    m_Mutex.lock();
+void Logger::_Log(const char* message, va_list args) {
     char buffer[2048];
     vsnprintf(buffer, 2048, message, args);
+    m_Mutex.lock();
     cout << buffer << endl;
     fputs(buffer, m_File);
     fputs("\n", m_File);
     m_Mutex.unlock();
 } 
+
+void Logger::SetShutdown() {
+    m_Mutex.lock();
+    m_Shutdown = true;
+    m_Mutex.unlock();
+}
