@@ -1,11 +1,15 @@
-#pragma once
+#ifndef __ITEM__H__
+#define __ITEM__H__
 
-class Item : public GameObject {
+#include "GameObject.h"
 
-	public:
-		Item(const std::string & id_, const std::string name_, const std::string & desc_) : GameObject(id_, name_, desc_) {}
+class Item: public GameObject {
+public:
+	Item(const std::string& id_, const std::string name_, const std::string& desc_): GameObject(id_, name_, desc_) {}
 
-		virtual isItem() const { return true; }
-		virtual bool canBeTaken() const { return true; }
+	virtual bool isItem() const { return true; }
+	virtual bool canBeTaken() const { return true; }
 
 };
+
+#endif  //!__ITEM__H__

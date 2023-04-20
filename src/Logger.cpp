@@ -5,6 +5,7 @@
 #include <iostream>
 
 using std::cout;
+using std::cerr;
 using std::endl;
 
 #define StartVaList(message) va_list args; va_start(args, message);
@@ -39,9 +40,9 @@ void Logger::Shutdown() {
 
 void Logger::_LogError(const char* message, ...) {
     StartVaList(message);
-    cout << "\033[1;31mERROR: \033[0m";
+	cerr << "\033[1;31mERROR: \033[0m";
     fputs("ERROR: ", m_File);
-    Log(message, args);
+    _Log(message, true, args);
     EndVaList;
 }
 
@@ -49,13 +50,13 @@ void Logger::_LogWarning(const char* message, ...) {
     StartVaList(message);
     cout << "\033[1;33mWARNING: \033[0m";
     fputs("WARNING: ", m_File);
-    Log(message, args);
+    _Log(message, false, args);
     EndVaList;
 }
 
 void Logger::_Log(const char* message, ...) {
     StartVaList(message);
-    Log(message, args);
+    _Log(message, false, args);
     va_end(args);
 }
 
@@ -65,11 +66,12 @@ void Logger::Flush() {
     }
 }
 
-void Logger::_Log(const char* message, va_list args) {
+void Logger::_Log(const char* message, bool logError, va_list args) {
     char buffer[2048];
     vsnprintf(buffer, 2048, message, args);
     m_Mutex.lock();
-    cout << buffer << endl;
+    if (!logError) cout << buffer << endl;
+	else cerr << buffer << endl;
     fputs(buffer, m_File);
     fputs("\n", m_File);
     m_Mutex.unlock();

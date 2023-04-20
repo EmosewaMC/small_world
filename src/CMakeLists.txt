@@ -5,9 +5,10 @@ SET(SOURCE_FILES
     "Logger.cpp"
 	"Player.cpp"
     "Room.cpp"
+	"StringUtils.cpp"
 )
 
-add_library(dSmallWorld ${SOURCE_FILES})
+add_library(dSmallWorld STATIC ${SOURCE_FILES})
 
 add_executable(small_world "Main.cpp")
 

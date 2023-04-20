@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __DIRECTORYLOADER__H__
+#define __DIRECTORYLOADER__H__
 
 // A Loader for objects it in the system - loads objects from the filesystem
 // This loader loads a whole directory of objects, and inserts them into the
@@ -11,9 +12,8 @@
 #include "Index.h"
 
 class DirectoryLoader {
-
-	public:
-		bool load_directory_of_rooms(const std::string & dirname, Index<Room> * index) const;
-
-
+public:
+	bool load_directory_of_rooms(const std::string& dirname, Index<Room>* index) const;
 };
+
+#endif  //!__DIRECTORYLOADER__H__

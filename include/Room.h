@@ -6,7 +6,6 @@
 #include <memory>
 
 #include "GameObject.h"
-#include "Player.h"
 
 class Room : public GameObject {
 protected:
@@ -40,7 +39,6 @@ public:
 	virtual std::string get_link(const std::string& direction);
 	virtual void clear();
 	virtual std::string get_next_room_id(const std::string& direction);
-
 };
 
 typedef std::shared_ptr<Room> SharedRoomPtr;

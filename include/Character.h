@@ -1,13 +1,12 @@
 #ifndef __CHARACTER__H__
 #define __CHARACTER__H__
 
-#include "GameObject.h"
-
 #include "Room.h"
+#include "GameObject.h"
 
 class Character : public GameObject {
 public:
-	Character(const std::string& id_, const std::string& name_, const std::string& desc_) : GameObject(id_, name_, desc_) {}
+	Character(const std::string& id_, const std::string& name_, const std::string& desc_);
 
 	virtual bool is_character() const { return true; }
 

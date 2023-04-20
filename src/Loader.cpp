@@ -3,11 +3,11 @@
 
 #include <fstream>
 #include "picojson.h"
+#include "Logger.h"
 
 // loads items of various types from the file system
 // here, we hand deserialize stuff from JSON in a file
 // In most commerical systems, this would be done using an automatic deserializer
-using namespace picojson;
 
 SharedRoomPtr Loader::load_room(const std::string& filename) const {
 
@@ -23,12 +23,12 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 	std::string err = picojson::get_last_error();
 
 	if (!err.empty()) {
-		std::cerr << "Error reading file : " << filename << " : " << err << std::endl;
+		LogError("Error reading file : %s : %s", filename.c_str(), err.c_str());
 		return nullptr;
 	}
 
 	if (!v.is<picojson::object>()) {
-		std::cerr << "Contents of file : " << filename << " are not a valid JSON object : " << v.to_str() << std::endl;
+		LogError("Contents of file : %s are not a valid JSON object : %s", filename.c_str(), v.to_str().c_str());
 		return nullptr;
 	}
 	
@@ -36,17 +36,17 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 	picojson::object& obj = v.get<picojson::object>();
 
 	if (!has_string_field(obj, "Id")) {
-		std::cerr << "filename : " << filename << " does not contain an Id property (or it is not a string)" << std::endl; 
+		LogError("filename : %s does not contain an Id property (or it is not a string)", filename.c_str());
 		return nullptr;
 	}
 
 	if (!has_string_field(obj, "Name")) {
-		std::cerr << "filename : " << filename << " does not contain a Name Property (or it is not a string)" << std::endl;
+		LogError("filename : %s does not contain a Name Property (or it is not a string)", filename.c_str());
 		return nullptr;
 	}
 
 	if (!has_string_field(obj, "Description")) {
-		std::cerr << "filename : " << filename << " does not contain a Description property (or it is not a string)" << std::endl;
+		LogError("filename : %s does not contain a Description property (or it is not a string)", filename.c_str());
 		return nullptr;
 	}
 

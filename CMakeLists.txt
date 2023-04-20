@@ -33,3 +33,5 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/data/rooms/)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/logs)
 
 file(COPY ${ROOMS_TO_COPY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/data/rooms/)
+
+target_precompile_headers(dSmallWorld PRIVATE "include/picojson.h")

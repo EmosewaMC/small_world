@@ -8,40 +8,32 @@
 #include <string>
 #include <memory>
 
+#include <filesystem>
 #include <iostream>
 
-#include "listdir.h"
-#include "string_utils.h"
+#include "StringUtils.h"
 
 #include "Room.h"
 #include "Loader.h"
 #include "Logger.h"
 
 bool DirectoryLoader::load_directory_of_rooms(const std::string& dirname, Index<Room>* roomIndex) const {
-
 	Loader loader;
-	Log("Abour to load directory : %s", dirname.c_str());
+	Log("About to load directory : %s", dirname.c_str());
 
-	std::vector<std::string> fileNames = list_dir(dirname);
-
-	for (const auto& entry : fileNames) {
-
-		if (entry == "..") continue;
-		if (entry == ".") continue;
-
-		if (!ends_with(entry, ".json")) continue;
-
-		std::string path = dirname + entry;
-		Log("Loading: %s", path.c_str());
-
-		SharedRoomPtr room = loader.load_room(path);
-
-		if (room == nullptr) {
-			LogError("Cannot load room : %s", entry.c_str());
-			return false;
+	for (const auto& entry : std::filesystem::directory_iterator(dirname)) {
+		auto filePath = entry.path();
+		auto filePathCstr = filePath.c_str();
+		if (StringUtils::ends_with(filePathCstr, ".json")) {
+			Log("Loading: %s", filePathCstr);
+			SharedRoomPtr room = loader.load_room(filePathCstr);
+			if (!room) {
+				LogError("Cannot load room (%s)", filePathCstr);
+				return false;
+			}
+			Log("Successfully loaded room : %s", filePathCstr);
+			roomIndex->add_object(room);
 		}
-		Log("Successfully loaded room : %s", entry.c_str());
-		roomIndex->add_object(room);
 	}
 	return true;
 }

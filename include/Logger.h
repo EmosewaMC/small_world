@@ -25,7 +25,7 @@ public:
     void _LogError(const char* message, ...);
     void Flush();
 private:
-    void _Log(const char* message, va_list args);
+    void _Log(const char* message, bool logError, va_list args);
     void LoggingThread();
     void SetShutdown();
     FILE* m_File;

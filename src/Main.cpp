@@ -6,12 +6,11 @@
 #include <thread>
 
 #include "DirectoryLoader.h"
+#include "StringUtils.h"
 #include "Index.h"
 #include "Logger.h"
 #include "Player.h"
 #include "Room.h"
-#include "split.h"
-#include "trim.h"
 
 SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room,
 	const std::string& direction) {
@@ -36,7 +35,7 @@ SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room,
     Log("Awaiting player input");             \
     std::string s = "";                       \
     std::getline(std::cin, s);                \
-    Log("Exact Player input: %s", s.c_str()); \
+    Log("Exact Player input: (%s)", s.c_str()); \
     return s;                                 \
   });
 
@@ -55,8 +54,6 @@ int main() {
 	Log("Starting the game at time %i", time(NULL));
 	Logger::Instance().Flush();
 
-	auto playerInput = PlayerInputAsync;
-
 	signal(SIGINT, [](int) { Shutdown(true); });
 	atexit([]() { Logger::Instance().Shutdown(); });
 	Log("Creating the player");
@@ -69,9 +66,11 @@ int main() {
 	loader.load_directory_of_rooms("./data/rooms/", &rooms);
 
 	std::string starting_room = "mrober10-room-a";
-	SharedRoomPtr room = rooms.get_object(starting_room);
 
 	Log("Getting the starting room");
+	SharedRoomPtr room = rooms.get_object(starting_room);
+
+	Log("Got the starting room");
 
 	if (!room) {
 		LogError("Cannot find the starting room : %s", starting_room.c_str());
@@ -88,9 +87,11 @@ int main() {
 
 	std::string input_line;
 
+	// Begin player input
+	auto playerInput = PlayerInputAsync;
 	do {
 		std::string holder = playerInput.get();
-		input_line = trim(holder);
+		input_line = StringUtils::trim(holder);
 		// Lowercase for consistency
 		std::transform(input_line.begin(), input_line.end(), input_line.begin(),
 			::tolower);
@@ -107,13 +108,13 @@ int main() {
 		// above.
 		playerInput = PlayerInputAsync;
 
-		Log("Trimmed player input: %s size %i", input_line.c_str(),
+		Log("Trimmed player input: (%s) size (%i)", input_line.c_str(),
 			input_line.size());
 
 		if (input_line == "look") {
 			player.look();
 		} else if (input_line.find("go ", 0) == 0) {
-			std::vector<std::string> sp = split(input_line, " ");
+			std::vector<std::string> sp = StringUtils::split(input_line, " ");
 
 			if (sp.size() != 1) {
 				Log("I need a valid direction to go in.");

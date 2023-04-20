@@ -2,6 +2,7 @@
 #define __PLAYER__H__
 
 #include <string>
+
 #include "Character.h"
 
 class Player : public Character {
