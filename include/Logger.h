@@ -25,10 +25,10 @@ constexpr char* GetFileName(const char* path) {
 
 #define FILENAME GET_FILE_NAME(":", STRINGIFY(__LINE__))
 
-#define Message(message, ...) Logger::Instance()._Output(message __VA_OPT__(,) __VA_ARGS__)
-#define Log(message, ...) Logger::Instance()._Log(FILENAME, message __VA_OPT__(,) __VA_ARGS__)
-#define LogWarning(message, ...) Logger::Instance()._LogWarning(FILENAME, message __VA_OPT__(,) __VA_ARGS__)
-#define LogError(message, ...) Logger::Instance()._LogError(FILENAME, message __VA_OPT__(,) __VA_ARGS__)
+#define Message(message, ...) Logger::Instance()._Output(message, ##__VA_ARGS__)
+#define Log(message, ...) Logger::Instance()._Log(FILENAME, message, ##__VA_ARGS__)
+#define LogWarning(message, ...) Logger::Instance()._LogWarning(FILENAME, message, ##__VA_ARGS__)
+#define LogError(message, ...) Logger::Instance()._LogError(FILENAME, message, ##__VA_ARGS__)
 
 class Logger : public Singleton<Logger> {
 public:

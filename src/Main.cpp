@@ -1,6 +1,7 @@
 
 #include <signal.h>
 
+#include <algorithm>
 #include <chrono>
 #include <future>
 #include <iostream>
