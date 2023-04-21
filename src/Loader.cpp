@@ -31,7 +31,7 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 		LogError("Contents of file : %s are not a valid JSON object : %s", filename.c_str(), v.to_str().c_str());
 		return nullptr;
 	}
-	
+
 	// it's an object, so uses it as such	
 	picojson::object& obj = v.get<picojson::object>();
 
@@ -54,10 +54,10 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 	picojson::value vName = obj["Name"];
 	picojson::value vDesc = obj["Description"];
 
-	SharedRoomPtr room = std::make_shared<Room>(vId.get<std::string>(), vName.get<std::string>(), vDesc.get<std::string>());	
+	SharedRoomPtr room = std::make_shared<Room>(vId.get<std::string>(), vName.get<std::string>(), vDesc.get<std::string>());
 
 	// now load the links to other rooms, if any
-		
+
 	if (!has_object_field(obj, "Links")) {
 		LogWarning("filename : %s does not contain a Links property and may be a dead end!", filename.c_str());
 		return room;  // it's fine to be a "standalone" room with no links
@@ -69,10 +69,9 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 	}
 
 	return room;
-
 }
 
-bool Loader::has_string_field(picojson::value::object& obj, const std::string& fieldname) const {
+bool Loader::has_string_field(picojson::object& obj, const std::string& fieldname) const {
 	// illustates data verification - does this object name the named field, and is it a string?
 	if (obj.find(fieldname) == obj.end()) return false;
 	if (!obj[fieldname].is<std::string>()) return false;
@@ -80,26 +79,23 @@ bool Loader::has_string_field(picojson::value::object& obj, const std::string& f
 	return true;
 }
 
-bool Loader::has_object_field(picojson::value::object& obj, const std::string& fieldname) const {
+bool Loader::has_object_field(picojson::object& obj, const std::string& fieldname) const {
 	if (obj.find(fieldname) == obj.end()) return false;
 	if (!obj[fieldname].is<picojson::object>()) return false;
 
 	return true;
 }
 
-bool Loader::load_links(const std::string& filename, const picojson::value::object& obj, SharedRoomPtr room) const {
+bool Loader::load_links(const std::string& filename, const picojson::object& obj, SharedRoomPtr room) const {
 	// load links to other rooms.  An example of using an iterator to iterate a JSON OBJECT
-	for (picojson::value::object::const_iterator i = obj.begin(); i != obj.end(); ++i) {
+	for (picojson::object::const_iterator i = obj.begin(); i != obj.end(); ++i) {
 		const std::string& direction = i->first;
 		picojson::value linked_room = i->second;
 		if (!linked_room.is<std::string>()) {
 			LogError("Link in filename : %s named %s is not a string", filename.c_str(), direction.c_str());
 			return false;
 		}
-		room->add_link(direction, linked_room.get<std::string>());
+		room->AddLink(direction, linked_room.get<std::string>());
 	}
 	return true;
-}	
-
-
-
+}

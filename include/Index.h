@@ -8,23 +8,15 @@
 
 template <typename T>
 class Index {
-
+private:
 	std::map<std::string, std::shared_ptr<T>> index;
+public:
+	std::shared_ptr<T> get_object(const std::string& id) {
+		auto it = index.find(id);
+		return it == index.end() ? nullptr : it->second;
+	}
 
-	public:
+	void add_object(std::shared_ptr<T> object) { index[object->GetId()] = object; }
 
-		std::shared_ptr<T> get_object(const std::string & id) {
-			auto it = index.find(id);
-			if (it == index.end()) return nullptr;
-			return it->second;
-		}
-
-		void add_object(std::shared_ptr<T> object) {
-			index[object->get_id()] = object;
-		}
-
-		void clear() {
-			index.clear();
-		}
-
+	void clear() { index.clear(); }
 };

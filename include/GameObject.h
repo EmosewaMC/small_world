@@ -21,24 +21,17 @@ protected:
 	std::string description;
 
 public:
-	GameObject(const std::string& id_, const std::string& name_, const std::string& description_) {
-		id = id_;
-		name = name_;
-		description = description_;
-	}
+	GameObject(const std::string& id, const std::string& name, const std::string& description);
 
-	const std::string& get_id() const { return id; }
-	const std::string& get_name() const { return name; }
-	const std::string& get_description() const { return description; }
+	const std::string& GetId() const { return id; }
+	const std::string& GetName() const { return name; }
+	const std::string& GetDescription() const { return description; }
 
-	virtual bool is_player() const { return false; }
-	virtual bool is_character() const { return false; }
-	virtual bool is_item() const { return false; }
-	virtual bool is_room() const { return false; }
-
-	virtual bool can_be_taken() const { return false; }
-
+	virtual bool IsPlayer() const { return false; }
+	virtual bool IsCharacter() const { return false; }
+	virtual bool IsItem() const { return false; }
+	virtual bool IsRoom() const { return false; }
+	virtual bool CanBeTaken() const { return false; }
 };
 
 typedef std::shared_ptr<GameObject> SharedGameObjectPtr;
-

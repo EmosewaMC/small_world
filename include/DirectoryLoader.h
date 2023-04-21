@@ -6,14 +6,12 @@
 // specified index
 
 #include <string>
-#include <memory>
 
 #include "Room.h"
 #include "Index.h"
 
-class DirectoryLoader {
-public:
-	bool load_directory_of_rooms(const std::string& dirname, Index<Room>* index) const;
+namespace DirectoryLoader {
+	void LoadDirectoryOfRooms(const std::string& dirname, Index<Room>* index);
 };
 
 #endif  //!__DIRECTORYLOADER__H__

@@ -1,23 +1,14 @@
-// A Loader for objects it in the system - loads objects from the filesystem
-// This loader loads a whole directory of objects, and inserts them into the
-// specified index
-
 #include "DirectoryLoader.h"
-#include "Index.h"
-
-#include <string>
-#include <memory>
 
 #include <filesystem>
-#include <iostream>
 
-#include "StringUtils.h"
-
+#include "Index.h"
 #include "Room.h"
 #include "Loader.h"
 #include "Logger.h"
+#include "StringUtils.h"
 
-bool DirectoryLoader::load_directory_of_rooms(const std::string& dirname, Index<Room>* roomIndex) const {
+void DirectoryLoader::LoadDirectoryOfRooms(const std::string& dirname, Index<Room>* roomIndex) {
 	Loader loader;
 	Log("About to load directory : %s", dirname.c_str());
 
@@ -28,13 +19,13 @@ bool DirectoryLoader::load_directory_of_rooms(const std::string& dirname, Index<
 			Log("Loading: %s", filePathCstr);
 			SharedRoomPtr room = loader.load_room(filePathCstr);
 			if (!room) {
-				LogError("Cannot load room (%s)", filePathCstr);
-				return false;
+				LogError("Cannot load room (%s). Skipping.", filePathCstr);
+				continue;
 			}
 			Log("Successfully loaded room : %s", filePathCstr);
 			roomIndex->add_object(room);
 		}
 	}
-	return true;
+	Log("Finished loading directory : %s", dirname.c_str());
 }
 

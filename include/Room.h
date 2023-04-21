@@ -23,22 +23,22 @@ public:
 	virtual bool is_room() const { return true; }
 
 	virtual bool add_contents(SharedGameObjectPtr object) {
-		if (!object->is_character() && !object->is_item()) return false;
-		contents[object->get_id()] = object;
+		if (!object->IsCharacter() && !object->IsItem()) return false;
+		contents[object->GetId()] = object;
 		return true;
 	}
 
-	virtual void remove_contents(SharedGameObjectPtr object) {
-		contents.erase(object->get_id());
+	virtual void RemoveContents(SharedGameObjectPtr object) {
+		contents.erase(object->GetId());
 	}
 
-	virtual void add_link(const std::string& direction, const std::string& to_id) {
+	virtual void AddLink(const std::string& direction, const std::string& to_id) {
 		links_to_other_rooms[direction] = to_id;
 	}
 
-	virtual std::string get_link(const std::string& direction);
+	virtual std::string GetLink(const std::string& direction);
 	virtual void clear();
-	virtual std::string get_next_room_id(const std::string& direction);
+	virtual std::string GetNextRoomId(const std::string& direction);
 };
 
 typedef std::shared_ptr<Room> SharedRoomPtr;

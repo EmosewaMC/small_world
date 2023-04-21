@@ -17,8 +17,8 @@
 #define FPS 15
 #define MILLISECONDS_PER_FRAME 1000 / FPS
 
-SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room, const std::string& direction) {
-	const std::string& next_room_id = room->get_next_room_id(direction);
+SharedRoomPtr GetNextRoom(Index<Room>* index, SharedRoomPtr room, const std::string& direction) {
+	const std::string& next_room_id = room->GetNextRoomId(direction);
 	if (next_room_id.empty()) {
 		Log("There is no where to go in the %s direction", direction.c_str());
 		return nullptr;
@@ -43,12 +43,24 @@ SharedRoomPtr get_next_room(Index<Room>* index, SharedRoomPtr room, const std::s
     return s;                                 \
   });
 
-void Shutdown(bool isExit = false) {
-	Log("Shutting down the game");
-	Logger::Instance().Shutdown();
-	if (isExit) {
-		exit(EXIT_SUCCESS);
-	}
+namespace Game {
+	Index<Room>* rooms;
+	std::atomic<bool> running = true;
+};
+
+// Properly shutsdown the game. Only call this once.
+void Shutdown() {
+	if (Game::running) {
+		Game::running = false;
+		Log("Shutting down the game");
+		if (Game::rooms) {
+			Log("Clearing the rooms");
+			Game::rooms->clear();
+			delete Game::rooms;
+			Game::rooms = nullptr;
+		}
+		Logger::Instance().Shutdown();
+	} else Log("Shutdown called twice.  Ignoring second call.");
 }
 
 int main() {
@@ -56,39 +68,36 @@ int main() {
 	char buf[100];
 	snprintf(buf, 100, fmt, time(NULL));
 	Logger::Instance().Initialize(buf);
-	Log("Starting the game at time %i", time(NULL));
-	Logger::Instance().Flush();
+	LogDebug("Starting the game at time %i", time(NULL));
 
-	signal(SIGINT, [](int termSignal) { Log("Received signal %i", termSignal); Shutdown(true); });
-	atexit([]() { Logger::Instance().Shutdown(); });
+	signal(SIGINT, [](int termSignal) { Log("Received signal %i", termSignal); exit(EXIT_FAILURE); });
+	atexit([]() { Shutdown(); });
 	Log("Creating the player");
-	Player player("Player1", "Player1",
-		"A non-descript player.  They are grey-ish");
-	Index<Room> rooms;
+	Player player("Player1", "Player1", "A non-descript player.  They are grey-ish");
+
+	Log("Creating the rooms index");
+	Game::rooms = new Index<Room>();
 
 	Log("Loading the rooms");
-	DirectoryLoader loader;
-	loader.load_directory_of_rooms("./data/rooms/", &rooms);
+	DirectoryLoader::LoadDirectoryOfRooms("./data/rooms/", Game::rooms);
 
 	std::string starting_room = "mrober10-room-a";
 
 	Log("Getting the starting room");
-	SharedRoomPtr room = rooms.get_object(starting_room);
+	SharedRoomPtr room = Game::rooms->get_object(starting_room);
 
 	Log("Got the starting room");
 
 	if (!room) {
 		LogError("Cannot find the starting room : %s", starting_room.c_str());
-		Logger::Instance().Shutdown();
-		rooms.clear();
 		player.clear();
 		return EXIT_FAILURE;
 	}
 
-	player.set_current_room(room);
-	Log("\n");
+	player.SetCurrentRoom(room);
+	Message("\n");
 
-	player.look();
+	player.Look();
 
 	std::string input_line;
 
@@ -102,50 +111,45 @@ int main() {
 		if (playerInputReady) {
 			input_line = playerInput.get();
 			input_line = StringUtils::Trim(input_line);
-		}
-		// Lowercase for consistency
-		std::transform(input_line.begin(), input_line.end(), input_line.begin(),
-			::tolower);
+			// Lowercase for consistency
+			std::transform(input_line.begin(), input_line.end(), input_line.begin(), ::tolower);
 
-		if (input_line == "q" || input_line == "quit" || input_line == "exit") {
-			Message("bye");
-			rooms.clear();
-			player.clear();
-			Shutdown();
-			return EXIT_SUCCESS;
-		}
+			// Check if we are quitting
+			if (input_line == "q" || input_line == "quit" || input_line == "exit") {
+				Message("bye");
+				player.clear();
+				return EXIT_SUCCESS;
+			}
 
-		if (playerInputReady) {
 			Log("Trimmed player input: (%s) size (%i)", input_line.c_str(), input_line.size());
 			if (input_line == "look") {
-				player.look();
+				player.Look();
 			} else if (input_line.find("go ", 0) == 0) {
-				std::vector<std::string> sp = StringUtils::Split(input_line, " \t");
+				auto sp = StringUtils::Split(input_line, " \t");
 
 				if (sp.size() <= 1) {
 					Log("I need a valid direction to go in.");
 				} else {
 					const std::string& direction = sp.at(1);
 
-					SharedRoomPtr current_room = player.get_current_room();
+					SharedRoomPtr current_room = player.GetCurrentRoom();
 
 					if (!current_room) {
 						LogError("You are standing nowhere, so can't go anywhere.  Shutting down game.");
 						exit(EXIT_FAILURE);
 					}
 
-					SharedRoomPtr proposed_room = get_next_room(&rooms, current_room, direction);
+					SharedRoomPtr proposed_room = GetNextRoom(Game::rooms, current_room, direction);
 					if (proposed_room) {
-						player.set_current_room(proposed_room);
+						player.SetCurrentRoom(proposed_room);
 						Log("\n");
-						player.look();
-					} else {
-						Log("There isn't anything in that direction");
-					}
+						player.Look();
+					} else Log("There isn't anything in that direction");
 				}
 			} else {
 				Log("The command %s is not recognized", input_line.c_str());
 			}
+			input_line.clear();
 			playerInput = PlayerInputAsync;
 		}
 		currentTime += std::chrono::milliseconds(MILLISECONDS_PER_FRAME);

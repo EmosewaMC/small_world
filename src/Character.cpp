@@ -3,14 +3,14 @@
 #include "Room.h"
 #include "Logger.h"
 
-Character::Character(const std::string& id_, const std::string& name_, const std::string& desc_): GameObject(id_, name_, desc_) {}
+Character::Character(const std::string& id, const std::string& name, const std::string& desc): GameObject(id, name, desc) {}
 
-void Character::look() {
+void Character::Look() {
 	if (!current_room) {
-		LogError("You are nowhere");
+		LogError("You are nowhere? How?");
 		return;
 	}
-	Message("%s\n", current_room->get_description().c_str());
+	Message("%s\n", current_room->GetDescription().c_str());
 }
 
 

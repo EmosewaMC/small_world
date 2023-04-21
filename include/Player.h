@@ -7,7 +7,7 @@
 
 class Player : public Character {
 public:
-	Player(const std::string& id_, const std::string& name_, const std::string& desc_);
+	Player(const std::string& id, const std::string& name, const std::string& desc);
 };
 
 #endif  //!__PLAYER__H__

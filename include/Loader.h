@@ -18,10 +18,10 @@ public:
 	SharedRoomPtr load_room(const std::string& filename) const;
 protected:
 
-	bool has_string_field(picojson::value::object& obj, const std::string& fieldname) const;
-	bool has_object_field(picojson::value::object& obj, const std::string& fieldname) const;
+	bool has_string_field(picojson::object& obj, const std::string& fieldname) const;
+	bool has_object_field(picojson::object& obj, const std::string& fieldname) const;
 
-	bool load_links(const std::string& filename, const picojson::value::object& obj, SharedRoomPtr room) const;
+	bool load_links(const std::string& filename, const picojson::object& obj, SharedRoomPtr room) const;
 };
 
 #endif  //!__LOADER__H__

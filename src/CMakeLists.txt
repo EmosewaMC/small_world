@@ -1,6 +1,7 @@
 SET(SOURCE_FILES
     "Character.cpp"
     "DirectoryLoader.cpp"
+	"GameObject.cpp"
     "Loader.cpp"
 	"Player.cpp"
     "Room.cpp"

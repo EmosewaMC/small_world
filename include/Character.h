@@ -8,12 +8,12 @@ class Character : public GameObject {
 public:
 	Character(const std::string& id_, const std::string& name_, const std::string& desc_);
 
-	virtual bool is_character() const { return true; }
+	virtual bool IsCharacter() const { return true; }
 
-	virtual void set_current_room(SharedRoomPtr room) { this->current_room = room; }
-	virtual SharedRoomPtr get_current_room() const { return current_room; }
+	virtual void SetCurrentRoom(SharedRoomPtr room) { this->current_room = room; }
+	virtual SharedRoomPtr GetCurrentRoom() const { return current_room; }
 
-	virtual void look();
+	virtual void Look();
 	virtual void clear() { current_room = nullptr; }
 protected:
 	SharedRoomPtr current_room = nullptr;
