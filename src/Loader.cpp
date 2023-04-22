@@ -88,7 +88,7 @@ bool Loader::has_object_field(picojson::object& obj, const std::string& fieldnam
 
 bool Loader::load_links(const std::string& filename, const picojson::object& obj, SharedRoomPtr room) const {
 	// load links to other rooms.  An example of using an iterator to iterate a JSON OBJECT
-	for (picojson::object::const_iterator i = obj.begin(); i != obj.end(); ++i) {
+	for (auto i = obj.begin(); i != obj.end(); ++i) {
 		const std::string& direction = i->first;
 		picojson::value linked_room = i->second;
 		if (!linked_room.is<std::string>()) {

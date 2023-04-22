@@ -9,7 +9,6 @@ public:
 
 	virtual bool isItem() const { return true; }
 	virtual bool canBeTaken() const { return true; }
-
 };
 
 #endif  //!__ITEM__H__
