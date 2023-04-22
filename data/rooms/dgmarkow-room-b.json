@@ -1,0 +1,10 @@
+{
+	"Type" : "Room",
+	"Id" : "dgmarkow-room-b",
+	"Name" : "Dave's room",
+	"Description" : "Dave's secret stash",
+	"Links" : {
+		"north" : "mrober10-room-b",
+		"west" : "dgmarkow-room-a"
+	}
+}

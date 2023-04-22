@@ -2,6 +2,8 @@ set(
     ROOMS_TO_COPY
     "mrober10-room-a.json"
     "mrober10-room-b.json"
+	"dgmarkow-room-a.json"
+	"dgmarkow-room-b.json"
 )
 
 get_filename_component(thisFolderName ${CMAKE_CURRENT_SOURCE_DIR} NAME)

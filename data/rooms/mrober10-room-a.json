@@ -4,7 +4,7 @@
 	"Name" : "Mike's room",
 	"Description" : "E2-541b - a small, non-descript office on the 5th floor of the second baskin engineering building.  Looking out of the window you see a number of redwood trees.  A small passage leads north to Sheldon's cave",
 	"Links" : {
-		"north" : "mrober10-room-b"
-
+		"north" : "mrober10-room-b",
+		"east" : "dgmarkow-room-a"
 	}
 }

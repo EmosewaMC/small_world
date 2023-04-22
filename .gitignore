@@ -4,3 +4,4 @@ small-world/
 .vscode/*
 
 .gitignore.swp
+data/.DS_Store
