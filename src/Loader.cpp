@@ -3,14 +3,13 @@
 
 #include <fstream>
 #include "picojson.h"
+#include "PicoJsonUtils.h"
 #include "Logger.h"
 
 // loads items of various types from the file system
 // here, we hand deserialize stuff from JSON in a file
 // In most commerical systems, this would be done using an automatic deserializer
-
 SharedRoomPtr Loader::load_room(const std::string& filename) const {
-
 	// load a room from the JSON contained in filename
 	// if there are errors, note these to LogError, and return nullptr
 	// otherwise, return a shared_ptr to the room
@@ -35,17 +34,17 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 	// it's an object, so uses it as such	
 	picojson::object& obj = v.get<picojson::object>();
 
-	if (!has_string_field(obj, "Id")) {
+	if (!PicoJsonUtils::HasField<std::string>(obj, "Id")) {
 		LogError("filename : %s does not contain an Id property (or it is not a string)", filename.c_str());
 		return nullptr;
 	}
 
-	if (!has_string_field(obj, "Name")) {
+	if (!PicoJsonUtils::HasField<std::string>(obj, "Name")) {
 		LogError("filename : %s does not contain a Name Property (or it is not a string)", filename.c_str());
 		return nullptr;
 	}
 
-	if (!has_string_field(obj, "Description")) {
+	if (!PicoJsonUtils::HasField<std::string>(obj, "Description")) {
 		LogError("filename : %s does not contain a Description property (or it is not a string)", filename.c_str());
 		return nullptr;
 	}
@@ -58,7 +57,7 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 
 	// now load the links to other rooms, if any
 
-	if (!has_object_field(obj, "Links")) {
+	if (!PicoJsonUtils::HasField<picojson::object>(obj, "Links")) {
 		LogWarning("filename : %s does not contain a Links property and may be a dead end!", filename.c_str());
 		return room;  // it's fine to be a "standalone" room with no links
 	}
@@ -69,21 +68,6 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 	}
 
 	return room;
-}
-
-bool Loader::has_string_field(picojson::object& obj, const std::string& fieldname) const {
-	// illustates data verification - does this object name the named field, and is it a string?
-	if (obj.find(fieldname) == obj.end()) return false;
-	if (!obj[fieldname].is<std::string>()) return false;
-
-	return true;
-}
-
-bool Loader::has_object_field(picojson::object& obj, const std::string& fieldname) const {
-	if (obj.find(fieldname) == obj.end()) return false;
-	if (!obj[fieldname].is<picojson::object>()) return false;
-
-	return true;
 }
 
 bool Loader::load_links(const std::string& filename, const picojson::object& obj, SharedRoomPtr room) const {

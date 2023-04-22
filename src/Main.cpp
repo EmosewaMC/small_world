@@ -67,26 +67,29 @@ int main() {
 	auto fmt = "logs/log_%i.txt";
 	char buf[100];
 	snprintf(buf, 100, fmt, time(NULL));
-	Logger::Instance().Initialize(buf);
+	if (!Logger::Instance().Initialize(buf)) {
+		std::cerr << "Cannot initialize the logger" << std::endl;
+		return EXIT_FAILURE;
+	}
 	LogDebug("Starting the game at time %i", time(NULL));
 
 	signal(SIGINT, [](int termSignal) { Log("Received signal %i", termSignal); exit(EXIT_FAILURE); });
 	atexit([]() { Shutdown(); });
-	Log("Creating the player");
+	LogDebug("Creating the player");
 	Player player("Player1", "Player1", "A non-descript player.  They are grey-ish");
 
-	Log("Creating the rooms index");
+	LogDebug("Creating the rooms index");
 	Game::rooms = new Index<Room>();
 
-	Log("Loading the rooms");
+	LogDebug("Loading the rooms");
 	DirectoryLoader::LoadDirectoryOfRooms("./data/rooms/", Game::rooms);
 
 	std::string starting_room = "mrober10-room-a";
 
-	Log("Getting the starting room");
+	LogDebug("Getting the starting room");
 	SharedRoomPtr room = Game::rooms->get_object(starting_room);
 
-	Log("Got the starting room");
+	LogDebug("Got the starting room");
 
 	if (!room) {
 		LogError("Cannot find the starting room : %s", starting_room.c_str());
@@ -121,14 +124,14 @@ int main() {
 				return EXIT_SUCCESS;
 			}
 
-			Log("Trimmed player input: (%s) size (%i)", input_line.c_str(), input_line.size());
+			LogDebug("Trimmed player input: (%s) size (%i)", input_line.c_str(), input_line.size());
 			if (input_line == "look") {
 				player.Look();
 			} else if (input_line.find("go ", 0) == 0) {
 				auto sp = StringUtils::Split(input_line, " \t");
 
 				if (sp.size() <= 1) {
-					Log("I need a valid direction to go in.");
+					Message("I need a valid direction to go in.");
 				} else {
 					const std::string& direction = sp.at(1);
 
@@ -152,6 +155,7 @@ int main() {
 			input_line.clear();
 			playerInput = PlayerInputAsync;
 		}
+		LogDebug("Sleeping for %i milliseconds time %i", MILLISECONDS_PER_FRAME, time(NULL));
 		currentTime += std::chrono::milliseconds(MILLISECONDS_PER_FRAME);
 		std::this_thread::sleep_until(currentTime);
 	}

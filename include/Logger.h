@@ -50,7 +50,7 @@ public:
     Logger() = default;
 
     void Shutdown();
-    void Initialize(const char* filename);
+    bool Initialize(const char* filename);
 
 	void _Output(const char* message, ...);
     void _Log(const char* fileName, const char* message, ...);
