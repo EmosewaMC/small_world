@@ -71,8 +71,20 @@ void Logger::_Log(const char* fileName, const char* message, bool logError, va_l
 	char buffer[2048];
 	vsnprintf(buffer, 2048, message, args);
 	m_Mutex.lock();
-	if (!logError) cout << '[' << fileName << "] " << buffer << endl;
-	else cerr << '[' << fileName << "] " << buffer << endl;
+	if (!logError) {
+		fputs("[", stdout);
+		fputs(fileName, stdout);
+		fputs("] ", stdout);
+		fputs(buffer, stdout);
+		fputs("\n", stdout);
+	}
+	else {
+		fputs("[", stderr);
+		fputs(fileName, stderr);
+		fputs("] ", stderr);
+		fputs(buffer, stderr);
+		fputs("\n", stderr);
+	}
 	fputs("[", m_File);
 	fputs(fileName, m_File);
 	fputs("] ", m_File);
@@ -91,10 +103,8 @@ void Logger::_Output(const char* message, ...) {
 	StartVaList(message);
 	char buffer[2048];
 	vsnprintf(buffer, 2048, message, args);
-	m_Mutex.lock();
-	cout << buffer << endl;
+	fputs(buffer, stdout);
 	fputs(buffer, m_File);
 	fputs("\n", m_File);
-	m_Mutex.unlock();
 	EndVaList;
 }

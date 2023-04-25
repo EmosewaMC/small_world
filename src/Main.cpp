@@ -1,5 +1,8 @@
 
 #include <signal.h>
+#include <stdio.h>
+#include <sys/poll.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <chrono>
@@ -12,6 +15,7 @@
 #include "Index.h"
 #include "Logger.h"
 #include "Player.h"
+#include "Queue.h"
 #include "Room.h"
 
 #define FPS 15
@@ -34,19 +38,33 @@ SharedRoomPtr GetNextRoom(Index<Room>* index, SharedRoomPtr room, const std::str
 	return proposed_room;
 }
 
-#define PlayerInputAsync                      \
-  std::async(std::launch::async, [&]() {      \
-    Log("Awaiting player input");             \
-    std::string s = "";                       \
-    std::getline(std::cin, s);                \
-    Log("Exact Player input: (%s)", s.c_str()); \
-    return s;                                 \
-  });
-
 namespace Game {
 	Index<Room>* rooms;
 	std::atomic<bool> running = true;
+	std::thread playerInputThread;
+	Queue* queue = nullptr;
 };
+
+void StartPlayerInput() {
+	auto currentTime = std::chrono::system_clock::now();
+	auto nextTime = currentTime;
+	pollfd poller;
+	poller.fd = STDIN_FILENO;
+	poller.events = POLLIN;
+	while (Game::running) {
+		nextTime += std::chrono::milliseconds(MILLISECONDS_PER_FRAME);
+		LogDebug("Awaiting player input");
+		std::string s = "";
+		int32_t ret = poll(&poller, 1, 0);
+		if (ret == 1) {
+			std::getline(std::cin, s);
+			LogDebug("Exact Player input: (%s)", s.c_str());
+			Game::queue->AddMessage(s);
+		}
+		std::this_thread::sleep_until(nextTime);
+	}
+	Log("Finished reading player input");
+}
 
 // Properly shutsdown the game. Only call this once.
 void Shutdown() {
@@ -60,10 +78,23 @@ void Shutdown() {
 			Game::rooms = nullptr;
 		}
 		Logger::Instance().Shutdown();
+		if (Game::queue) {
+			delete Game::queue;
+			Game::queue = nullptr;
+		}
+		Game::playerInputThread.join();
 	} else Log("Shutdown called twice.  Ignoring second call.");
 }
 
+bool Function(std::string input) {
+	return true;
+}
+
+std::map<std::string, std::function<bool(std::string)>> m_functionMapping{};
+
 int main() {
+	Game::queue = new Queue();
+	m_functionMapping.insert_or_assign("test", Function);
 	auto fmt = "logs/log_%i.txt";
 	char buf[100];
 	snprintf(buf, 100, fmt, time(NULL));
@@ -103,17 +134,14 @@ int main() {
 	player.Look();
 
 	std::string input_line;
-
-	// Begin player input
-	auto playerInput = PlayerInputAsync;
+	Game::playerInputThread = std::thread(StartPlayerInput);
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
+	auto nextFrameTime = currentTime;
 	while (true) {
-		auto playerInputStatus = playerInput.wait_until(currentTime);
-		bool playerInputReady = playerInputStatus == std::future_status::ready;
-		if (playerInputReady) {
-			input_line = playerInput.get();
-			input_line = StringUtils::Trim(input_line);
+		nextFrameTime += std::chrono::milliseconds(MILLISECONDS_PER_FRAME);
+		while (!Game::queue->Empty()) {
+			input_line = StringUtils::Trim(Game::queue->GetMessage());
 			// Lowercase for consistency
 			std::transform(input_line.begin(), input_line.end(), input_line.begin(), ::tolower);
 
@@ -145,18 +173,19 @@ int main() {
 					SharedRoomPtr proposed_room = GetNextRoom(Game::rooms, current_room, direction);
 					if (proposed_room) {
 						player.SetCurrentRoom(proposed_room);
-						Log("\n");
+						Message("\n");
 						player.Look();
 					} else Log("There isn't anything in that direction");
 				}
 			} else {
 				Log("The command %s is not recognized", input_line.c_str());
 			}
-			input_line.clear();
-			playerInput = PlayerInputAsync;
+
+			if (input_line == "test") {
+				auto function = m_functionMapping.find("test");
+				Log("function returned %i", function->second(input_line));
+			}
 		}
-		LogDebug("Sleeping for %i milliseconds time %i", MILLISECONDS_PER_FRAME, time(NULL));
-		currentTime += std::chrono::milliseconds(MILLISECONDS_PER_FRAME);
-		std::this_thread::sleep_until(currentTime);
+		std::this_thread::sleep_until(nextFrameTime);
 	}
 }

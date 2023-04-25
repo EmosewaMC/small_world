@@ -4,6 +4,7 @@ SET(SOURCE_FILES
 	"GameObject.cpp"
     "Loader.cpp"
 	"Player.cpp"
+	"Queue.cpp"
     "Room.cpp"
 	"StringUtils.cpp"
 )

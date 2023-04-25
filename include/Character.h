@@ -6,7 +6,9 @@
 
 class Character : public GameObject {
 public:
-	Character(const std::string& id_, const std::string& name_, const std::string& desc_);
+	// An example of how you do not need to define variable names in th declaration of a function
+	// Only if you use them in a function do they need to be named.
+	Character(const std::string&, const std::string&, const std::string&);
 
 	virtual bool IsCharacter() const { return true; }
 

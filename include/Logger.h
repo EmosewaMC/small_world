@@ -52,10 +52,29 @@ public:
     void Shutdown();
     bool Initialize(const char* filename);
 
+	/**
+	 * @brief Outputs a message without the source file and line number
+	 */
 	void _Output(const char* message, ...);
+
+	/**
+	 * @brief Logs the file and line number of a message
+	 */
     void _Log(const char* fileName, const char* message, ...);
+	
+	/**
+	 * @brief Logs a warning to the console
+	 */
     void _LogWarning(const char* fileName, const char* message, ...);
+
+	/**
+	 * @brief Logs an error to the console
+	 */
     void _LogError(const char* fileName, const char* message, ...);
+
+	/**
+	 * @brief Flushes the log file
+	 */
     void Flush();
 private:
     void _Log(const char* fileName, const char* message, bool logError, va_list args);
