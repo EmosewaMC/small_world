@@ -18,7 +18,7 @@ class Loader : public Singleton<Loader> {
 public:
 	SharedRoomPtr load_room(const std::string& filename) const;
 protected:
-	bool load_links(const std::string& filename, const picojson::object& obj, SharedRoomPtr room) const;
+	uint32_t LoadLinks(const std::string& filename, const picojson::object& obj, SharedRoomPtr room) const;
 };
 
 #endif  //!__LOADER__H__

@@ -4,20 +4,17 @@
 std::string Room::GetLink(const std::string& direction) {
 	// "" is the "error value"
 	auto it = links_to_other_rooms.find(direction);
-	if (it == links_to_other_rooms.end()) return "";
-
-	return it->second;
+	return it == links_to_other_rooms.end() ? "" : it->second;
 }
 
-void Room::clear() {
+void Room::Clear() {
 	contents.clear();
 	links_to_other_rooms.clear();
 }
 
 std::string Room::GetNextRoomId(const std::string& direction) {
-	std::map<std::string, std::string>::iterator it = links_to_other_rooms.find(direction);
-	if (it == links_to_other_rooms.end()) return "";
-	return it->second;
+	auto it = links_to_other_rooms.find(direction);
+	return it == links_to_other_rooms.end() ? "" : it->second;
 }
 
 

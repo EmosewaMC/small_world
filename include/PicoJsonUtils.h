@@ -19,6 +19,9 @@ namespace PicoJsonUtils {
 		return true;
 	}
 
+	/**
+	 * @brief Gets an attribute by T type and returns a default type should it not exist.
+	 */
 	template<typename TypeToGet>
 	TypeToGet GetAttribute(picojson::object& obj, const std::string& attributeName) {
 		return HasField<TypeToGet>(obj, attributeName) ? obj.find(attributeName)->second.get<TypeToGet>() : TypeToGet();

@@ -37,7 +37,7 @@ public:
 	}
 
 	virtual std::string GetLink(const std::string& direction);
-	virtual void clear();
+	virtual void Clear();
 	virtual std::string GetNextRoomId(const std::string& direction);
 };
 

@@ -16,7 +16,7 @@ public:
 	virtual SharedRoomPtr GetCurrentRoom() const { return current_room; }
 
 	virtual void Look();
-	virtual void clear() { current_room = nullptr; }
+	virtual void Clear() { current_room = nullptr; }
 protected:
 	SharedRoomPtr current_room = nullptr;
 };

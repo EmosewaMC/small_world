@@ -72,7 +72,6 @@ void Shutdown() {
 		Log("Shutting down the game");
 		if (Game::rooms) {
 			Log("Clearing the rooms");
-			Game::rooms->clear();
 			delete Game::rooms;
 			Game::rooms = nullptr;
 		}
@@ -123,7 +122,7 @@ int main() {
 
 	if (!room) {
 		LogError("Cannot find the starting room : %s", starting_room.c_str());
-		player.clear();
+		player.Clear();
 		return EXIT_FAILURE;
 	}
 
@@ -149,7 +148,7 @@ int main() {
 			// Check if we are quitting
 			if (input_line == "q" || input_line == "quit" || input_line == "exit") {
 				Message("bye");
-				player.clear();
+				player.Clear();
 				return EXIT_SUCCESS;
 			}
 

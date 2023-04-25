@@ -62,24 +62,26 @@ SharedRoomPtr Loader::load_room(const std::string& filename) const {
 		return room;  // it's fine to be a "standalone" room with no links
 	}
 
-	if (!load_links(filename, obj["Links"].get<picojson::object>(), room)) {
-		LogError("Error loading links from filename : %s", filename.c_str());
-		return nullptr;   // if there are links, they have to be right!
-	}
+	uint32_t loadedLinks = LoadLinks(filename, obj["Links"].get<picojson::object>(), room);
+
+	if (loadedLinks > 0) LogError("Error loading %i links from filename : %s", loadedLinks, filename.c_str());
 
 	return room;
 }
 
-bool Loader::load_links(const std::string& filename, const picojson::object& obj, SharedRoomPtr room) const {
+uint32_t Loader::LoadLinks(const std::string& filename, const picojson::object& obj, SharedRoomPtr room) const {
 	// load links to other rooms.  An example of using an iterator to iterate a JSON OBJECT
-	for (auto i = obj.begin(); i != obj.end(); ++i) {
-		const std::string& direction = i->first;
-		picojson::value linked_room = i->second;
+	uint32_t failedLinks = 0;
+	for (auto link : obj) {
+		const std::string& direction = link.first;
+		picojson::value linked_room = link.second;
 		if (!linked_room.is<std::string>()) {
 			LogError("Link in filename : %s named %s is not a string", filename.c_str(), direction.c_str());
-			return false;
+			failedLinks++;
 		}
-		room->AddLink(direction, linked_room.get<std::string>());
+		else {
+			room->AddLink(direction, linked_room.get<std::string>());
+		}
 	}
-	return true;
+	return failedLinks;
 }
