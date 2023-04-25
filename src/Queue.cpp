@@ -1,18 +1,20 @@
 #include "Queue.h"
+
+#include "BaseMessage.h"
 #include "Logger.h"
 
-std::string Queue::GetMessage() {
+BaseMessage* Queue::GetMessage() {
 	LockQueue;
 	if (m_Queue.empty()) {
 		LogWarning("Queue is empty");
-		return "";
+		return nullptr;
 	}
-	std::string message = m_Queue.front();
+	BaseMessage* message = m_Queue.front();
 	m_Queue.erase(m_Queue.begin());
 	return message;
 }
 
-void Queue::AddMessage(std::string& message) {
+void Queue::QueueMessage(BaseMessage* message) {
 	LockQueue;
 	m_Queue.push_back(message);
 }

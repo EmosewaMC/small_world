@@ -4,6 +4,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+class BaseMessage;
 
 #define LockQueue std::lock_guard<std::mutex> lock(m_Mutex)
 
@@ -12,12 +13,12 @@ public:
 	Queue() = default;
 	~Queue() = default;
 
-	std::string GetMessage();
-	void AddMessage(std::string& message);
+	BaseMessage* GetMessage();
+	void QueueMessage(BaseMessage* message);
 	bool Empty();
 private:
 	std::mutex m_Mutex;
-	std::vector<std::string> m_Queue;
+	std::vector<BaseMessage*> m_Queue;
 };
 
 #endif  //!__QUEUE__H__

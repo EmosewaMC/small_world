@@ -37,4 +37,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/logs)
 
 file(COPY ${ROOMS_TO_COPY} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/data/rooms/)
 
-target_precompile_headers(dSmallWorld PRIVATE "include/thirdparty/picojson.h")
+target_precompile_headers(dSmallWorld PRIVATE
+"include/thirdparty/picojson.h"
+"include/MessageIdentifiers.h"
+)

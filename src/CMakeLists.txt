@@ -1,7 +1,9 @@
 SET(SOURCE_FILES
+	"BaseMessage.cpp"
     "Character.cpp"
     "DirectoryLoader.cpp"
 	"GameObject.cpp"
+	"InterfaceManager.cpp"
     "Loader.cpp"
 	"Logger.cpp"
 	"Player.cpp"

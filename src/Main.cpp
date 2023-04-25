@@ -10,7 +10,10 @@
 #include <iostream>
 #include <thread>
 
+#include "BaseMessage.h"
+#include "Go.h"
 #include "DirectoryLoader.h"
+#include "InterfaceManager.h"
 #include "StringUtils.h"
 #include "Index.h"
 #include "Logger.h"
@@ -58,14 +61,25 @@ void StartPlayerInput() {
 		while (poll(&poller, 1, 0) == 1) {
 			std::getline(std::cin, s);
 			LogDebug("Exact Player input: (%s)", s.c_str());
-			Game::queue->AddMessage(s);
+			s = StringUtils::Trim(s);
+			std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+			BaseMessage* messageToQueue = nullptr;
+			if (s.find("go ") == 0) {
+				auto go = new Go();
+				go->SetDirection(s.substr(3));
+				messageToQueue = go;
+			} else {
+				Log("Unknown command: %s", s.c_str());
+				continue;
+			}
+			Game::queue->QueueMessage(messageToQueue);
 		}
 		std::this_thread::sleep_until(nextTime);
 	}
 	Log("Finished reading player input");
 }
 
-// Properly shutsdown the game. Only call this once.
+// Shutsdown the game.  Multiple calls are fine.
 void Shutdown() {
 	if (Game::running) {
 		Game::running = false;
@@ -84,15 +98,13 @@ void Shutdown() {
 	} else Log("Shutdown called twice.  Ignoring second call.");
 }
 
-bool Function(std::string input) {
-	return true;
+void InitializeGame() {
+	Game::queue = new Queue();
+	Game::rooms = new Index<Room>();
+	Game::playerInputThread = std::thread(StartPlayerInput);
 }
 
-std::map<std::string, std::function<bool(std::string)>> m_functionMapping{};
-
 int main() {
-	Game::queue = new Queue();
-	m_functionMapping.insert_or_assign("test", Function);
 	auto fmt = "logs/log_%i.txt";
 	char buf[100];
 	snprintf(buf, 100, fmt, time(NULL));
@@ -101,14 +113,12 @@ int main() {
 		return EXIT_FAILURE;
 	}
 	LogDebug("Starting the game at time %i", time(NULL));
-
+	
+	InitializeGame();
 	signal(SIGINT, [](int termSignal) { Log("Received signal %i", termSignal); exit(EXIT_FAILURE); });
 	atexit([]() { Shutdown(); });
 	LogDebug("Creating the player");
 	Player player("Player1", "Player1", "A non-descript player.  They are grey-ish");
-
-	LogDebug("Creating the rooms index");
-	Game::rooms = new Index<Room>();
 
 	LogDebug("Loading the rooms");
 	DirectoryLoader::LoadDirectoryOfRooms("./data/rooms/", Game::rooms);
@@ -125,14 +135,12 @@ int main() {
 		player.Clear();
 		return EXIT_FAILURE;
 	}
-
 	player.SetCurrentRoom(room);
 	Message("\n");
 
 	player.Look();
 
 	std::string input_line;
-	Game::playerInputThread = std::thread(StartPlayerInput);
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
 	auto nextFrameTime = currentTime;
@@ -141,9 +149,7 @@ int main() {
 		nextFrameTime += std::chrono::milliseconds(MILLISECONDS_PER_FRAME);
 		while (!Game::queue->Empty() && messageTime < MILLISECONDS_PER_FRAME) {
 			auto timeForMessage = std::chrono::high_resolution_clock::now();
-			input_line = StringUtils::Trim(Game::queue->GetMessage());
-			// Lowercase for consistency
-			std::transform(input_line.begin(), input_line.end(), input_line.begin(), ::tolower);
+			std::unique_ptr<BaseMessage> msg(Game::queue->GetMessage());
 
 			// Check if we are quitting
 			if (input_line == "q" || input_line == "quit" || input_line == "exit") {
@@ -155,13 +161,12 @@ int main() {
 			LogDebug("Trimmed player input: (%s) size (%i)", input_line.c_str(), input_line.size());
 			if (input_line == "look") {
 				player.Look();
-			} else if (input_line.find("go ", 0) == 0) {
-				auto sp = StringUtils::Split(input_line, " \t");
-
-				if (sp.size() <= 1) {
+			} else if (msg->GetMsgId() == MessageIdentifiers::GO) {
+				Go* goMsg = static_cast<Go*>(msg.get());
+				if (goMsg->GetDirection().size() == 0) {
 					Message("I need a valid direction to go in.");
 				} else {
-					const std::string& direction = sp.at(1);
+					const std::string& direction = goMsg->GetDirection();
 
 					SharedRoomPtr current_room = player.GetCurrentRoom();
 
@@ -179,11 +184,6 @@ int main() {
 				}
 			} else {
 				Log("The command %s is not recognized", input_line.c_str());
-			}
-
-			if (input_line == "test") {
-				auto function = m_functionMapping.find("test");
-				Log("function returned %i", function->second(input_line));
 			}
 			auto endMessageTime = std::chrono::high_resolution_clock::now();
 			uint64_t messageProcessTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endMessageTime - timeForMessage).count();

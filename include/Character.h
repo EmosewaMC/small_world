@@ -9,7 +9,7 @@ public:
 	// An example of how you do not need to define variable names in th declaration of a function
 	// Only if you use them in a function do they need to be named.
 	Character(const std::string&, const std::string&, const std::string&);
-
+	virtual ~Character() { Clear(); };
 	virtual bool IsCharacter() const { return true; }
 
 	virtual void SetCurrentRoom(SharedRoomPtr room) { this->current_room = room; }
