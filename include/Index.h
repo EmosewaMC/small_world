@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __INDEX__H__
+#define __INDEX__H__
 
 #include <string>
 #include <memory>
@@ -20,3 +21,5 @@ public:
 
 	void clear() { index.clear(); }
 };
+
+#endif  //!__INDEX__H__

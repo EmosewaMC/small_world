@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __GAMEOBJECT__H__
+#define __GAMEOBJECT__H__
 
 #include <string>
 #include <memory>
@@ -35,3 +36,5 @@ public:
 };
 
 typedef std::shared_ptr<GameObject> SharedGameObjectPtr;
+
+#endif  //!__GAMEOBJECT__H__
