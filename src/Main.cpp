@@ -51,12 +51,11 @@ void StartPlayerInput() {
 	pollfd poller;
 	poller.fd = STDIN_FILENO;
 	poller.events = POLLIN;
+	LogDebug("Awaiting player input");
 	while (Game::running) {
 		nextTime += std::chrono::milliseconds(MILLISECONDS_PER_FRAME);
-		LogDebug("Awaiting player input");
 		std::string s = "";
-		int32_t ret = poll(&poller, 1, 0);
-		if (ret == 1) {
+		while (poll(&poller, 1, 0) == 1) {
 			std::getline(std::cin, s);
 			LogDebug("Exact Player input: (%s)", s.c_str());
 			Game::queue->AddMessage(s);
@@ -139,8 +138,10 @@ int main() {
 	auto currentTime = std::chrono::high_resolution_clock::now();
 	auto nextFrameTime = currentTime;
 	while (true) {
+		float messageTime = 0.0f;		
 		nextFrameTime += std::chrono::milliseconds(MILLISECONDS_PER_FRAME);
-		while (!Game::queue->Empty()) {
+		while (!Game::queue->Empty() && messageTime < MILLISECONDS_PER_FRAME) {
+			auto timeForMessage = std::chrono::high_resolution_clock::now();
 			input_line = StringUtils::Trim(Game::queue->GetMessage());
 			// Lowercase for consistency
 			std::transform(input_line.begin(), input_line.end(), input_line.begin(), ::tolower);
@@ -185,7 +186,12 @@ int main() {
 				auto function = m_functionMapping.find("test");
 				Log("function returned %i", function->second(input_line));
 			}
+			auto endMessageTime = std::chrono::high_resolution_clock::now();
+			uint64_t messageProcessTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endMessageTime - timeForMessage).count();
+			LogDebug("Message processing time: %f", messageProcessTime / 1000000.0f);
+			messageTime += messageProcessTime / 1000000.0f;
 		}
+		LogDebug("Total message processing time: %f ms", messageTime);
 		std::this_thread::sleep_until(nextFrameTime);
 	}
 }

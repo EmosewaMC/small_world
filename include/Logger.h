@@ -34,7 +34,7 @@ constexpr char* GetFileName(const char* path) {
 #define Message(message, ...) Logger::Instance()._Output(message, ##__VA_ARGS__)
 
 // Logging macros.  Use these when you want to log something
-
+#define _DEBUG
 #ifndef _DEBUG
 #define LogDebug(message, ...)
 #else
